@@ -1,0 +1,168 @@
+---
+title: "Data Wrangling Capstone Data"
+author: "Joe Marco"
+date: "July 28, 2017"
+output: html_document
+---
+
+Load tidyverse package:
+```{r}
+suppressMessages(library(tidyverse))
+```
+
+Load capstone csv and name it (optinal to view after loading)
+```{r}
+capstonedata <- read.csv('productbackorder.csv')
+# View(capstonedata)
+```
+
+## Data Definitions:
+* sku - Random ID for the product
+* national_inv - Current inventory level for the part
+* lead_time - Transit time for product (if available)
+* in_transit_qty - Amount of product in transit from source
+* forecast_3_month - Forecast sales for the next 3 months
+* forecast_6_month - Forecast sales for the next 6 months
+* forecast_9_month - Forecast sales for the next 9 months
+* sales_1_month - Sales quantity for the prior 1 month time period
+* sales_3_month - Sales quantity for the prior 3 month time period
+* sales_6_month - Sales quantity for the prior 6 month time period
+* sales_9_month - Sales quantity for the prior 9 month time period
+* min_bank - Minimum recommend amount to stock
+* potential_issue - Source issue for part identified
+* pieces_past_due - Parts overdue from source
+* perf_6_month_avg - Source performance for prior 6 month period
+* perf_12_month_avg - Source performance for prior 12 month period
+* local_bo_qty - Amount of stock orders overdue
+* deck_risk - Part risk flag
+* oe_constraint - Part risk flag
+* ppap_risk - Part risk flag
+* stop_auto_buy - Part risk flag
+* rev_stop - Part risk flag
+* went_on_backorder - Product actually went on backorder. This is the target value.
+
+Rename some columns if needed (most of this data is defined above, but renaming one column for sake of showing how it could be done). I am renaming min_bank from aboce to min_stock:
+```{r}
+capstonedata <- rename(capstonedata, min_stock = min_bank)
+```
+
+### Check for Missing Values and decide what to do about them across every column in the data frame:
+If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null)
+```{r}#
+any(is.na(capstonedata$sku))
+any(is.na(capstonedata$national_inv))
+any(is.na(capstonedata$lead_time))
+any(is.na(capstonedata$in_transit_qty))
+any(is.na(capstonedata$forecast_3_month))
+any(is.na(capstonedata$forecast_6_month))
+any(is.na(capstonedata$forecast_9_month))
+any(is.na(capstonedata$sales_1_month))
+any(is.na(capstonedata$sales_3_month))
+any(is.na(capstonedata$sales_6_month))
+any(is.na(capstonedata$sales_9_month))
+any(is.na(capstonedata$min_stock))
+any(is.na(capstonedata$potential_issue))
+any(is.na(capstonedata$pieces_past_due))
+any(is.na(capstonedata$perf_6_month_avg))
+any(is.na(capstonedata$perf_12_month_avg))
+any(is.na(capstonedata$local_bo_qty))
+any(is.na(capstonedata$deck_risk))
+any(is.na(capstonedata$oe_constraint))
+any(is.na(capstonedata$ppap_risk))
+any(is.na(capstonedata$stop_auto_buy))
+any(is.na(capstonedata$rev_stop))
+any(is.na(capstonedata$went_on_backorder))
+```
+
+### BAsed off the above we can see the below columns have some NA or Null values:
+All these columns are fields that have numbers within the data rows. Thus we will remove the fields with null values and replace them with the average of said fields/columns:
+
+* **national_inv**
+* **lead_time**
+* **in_transit_qty**
+* **forecast_3_month**
+* **forecast_6_month**
+* **forecast_9_month**
+* **sales_1_month**
+* **sales_3_month**
+* **sales_6_month**
+* **sales_9_month**
+* **min_stock**
+* **pieces_past_due**
+* **perf_6_month_avg**
+* **perf_12_month_avg**
+* **local_bo_qty**
+
+### Assign containers to the mean of the associated columns with null values (your mean needs to ignow "!" any NA columns so that the mean does not pull back NA). We will use these next to overwrite the null values
+```{r}
+national_inv_mean <- mean(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+lead_time_mean <- mean(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+in_transit_qty_mean <- mean(capstonedata$in_transit_qty[!is.na(capstonedata$in_transit_qty)])
+forecast_3_month_mean <- mean(capstonedata$forecast_3_month[!is.na(capstonedata$forecast_3_month)])
+forecast_6_month_mean <- mean(capstonedata$forecast_6_month[!is.na(capstonedata$forecast_6_month)])
+forecast_9_month_mean <- mean(capstonedata$forecast_9_month[!is.na(capstonedata$forecast_9_month)])
+sales_1_month_mean <- mean(capstonedata$sales_1_month[!is.na(capstonedata$sales_1_month)])
+sales_3_month_mean <- mean(capstonedata$sales_3_month[!is.na(capstonedata$sales_3_month)])
+sales_6_month_mean <- mean(capstonedata$sales_6_month[!is.na(capstonedata$sales_6_month)])
+sales_9_month_mean <- mean(capstonedata$sales_9_month[!is.na(capstonedata$sales_9_month)])
+min_stock_mean <- mean(capstonedata$min_stock[!is.na(capstonedata$min_stock)])
+pieces_past_due_mean <- mean(capstonedata$pieces_past_due[!is.na(capstonedata$pieces_past_due)])
+perf_6_month_avg_mean <- mean(capstonedata$perf_6_month_avg[!is.na(capstonedata$perf_6_month_avg)])
+perf_12_month_avg_mean <- mean(capstonedata$perf_12_month_avg[!is.na(capstonedata$perf_12_month_avg)])
+local_bo_qty_mean <- mean(capstonedata$local_bo_qty[!is.na(capstonedata$local_bo_qty)])
+```
+
+### overwrite the existing columns NA values with the mean (average) of all other values in that column:
+
+```{r}
+capstonedata$national_inv[is.na(capstonedata$national_inv)] <- national_inv_mean
+capstonedata$lead_time[is.na(capstonedata$lead_time)] <- lead_time_mean
+capstonedata$in_transit_qty[is.na(capstonedata$in_transit_qty)] <- in_transit_qty_mean
+capstonedata$forecast_3_month[is.na(capstonedata$forecast_3_month)] <- forecast_3_month_mean
+capstonedata$forecast_6_month[is.na(capstonedata$forecast_6_month)] <- forecast_6_month_mean
+capstonedata$forecast_9_month[is.na(capstonedata$forecast_9_month)] <- forecast_9_month_mean
+capstonedata$sales_1_month[is.na(capstonedata$sales_1_month)] <- sales_1_month_mean
+capstonedata$sales_3_month[is.na(capstonedata$sales_3_month)] <- sales_3_month_mean
+capstonedata$sales_6_month[is.na(capstonedata$sales_6_month)] <- sales_6_month_mean
+capstonedata$sales_9_month[is.na(capstonedata$sales_9_month)] <- sales_9_month_mean
+capstonedata$min_stock[is.na(capstonedata$min_stock)] <- min_stock_mean
+capstonedata$pieces_past_due[is.na(capstonedata$pieces_past_due)] <- pieces_past_due_mean
+capstonedata$perf_6_month_avg[is.na(capstonedata$perf_6_month_avg)] <- perf_6_month_avg_mean
+capstonedata$perf_12_month_avg[is.na(capstonedata$perf_12_month_avg)] <- perf_12_month_avg_mean
+capstonedata$local_bo_qty[is.na(capstonedata$local_bo_qty)] <- local_bo_qty_mean
+```
+### If you would like to double check that now Null values are gone, rerun the code below to check for NA. All should be FALSE now:
+```{r}#
+any(is.na(capstonedata$sku))
+any(is.na(capstonedata$national_inv))
+any(is.na(capstonedata$lead_time))
+any(is.na(capstonedata$in_transit_qty))
+any(is.na(capstonedata$forecast_3_month))
+any(is.na(capstonedata$forecast_6_month))
+any(is.na(capstonedata$forecast_9_month))
+any(is.na(capstonedata$sales_1_month))
+any(is.na(capstonedata$sales_3_month))
+any(is.na(capstonedata$sales_6_month))
+any(is.na(capstonedata$sales_9_month))
+any(is.na(capstonedata$min_stock))
+any(is.na(capstonedata$potential_issue))
+any(is.na(capstonedata$pieces_past_due))
+any(is.na(capstonedata$perf_6_month_avg))
+any(is.na(capstonedata$perf_12_month_avg))
+any(is.na(capstonedata$local_bo_qty))
+any(is.na(capstonedata$deck_risk))
+any(is.na(capstonedata$oe_constraint))
+any(is.na(capstonedata$ppap_risk))
+any(is.na(capstonedata$stop_auto_buy))
+any(is.na(capstonedata$rev_stop))
+any(is.na(capstonedata$went_on_backorder))
+```
+
+### Output the data to a new cleaned file
+```{r}
+write.csv(capstonedata, file = "capstonedata_clean.csv")
+```
+
+### If there is any feedback on other ccode that could be applied to the capstone data, please let me know!
+
+
