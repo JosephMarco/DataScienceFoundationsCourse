@@ -1,0 +1,31 @@
+---
+title: "Draft Stats proposal"
+author: "Joe Marco"
+date: "August 30, 2017"
+output: html_document
+---
+
+### Get going by asking the following questions and looking for the answers with some code and plots:
+
+#### Can you count something interesting?
+* Count total backorders
+* Conditional probability that an item will go on backorder (refer to formula)
+
+#### Can you find some trends (high, low, increase, decrease, anomalies)?
+* Is there correlation between lead time and skus that went on backorder(ggplot)
+* Correlation between inventory and went on backorder? (ggplot)
+
+#### Can you make a bar plot or a histogram?
+* Utilize ggplot to create some charts and graphs (geom_histogram and or geom_bar)
+
+#### Can you compare two related quantities?
+* Need clarification of "related?"
+
+#### Can you make a scatterplot?
+* ggplot (geom_point)
+
+#### Can you make a time-series plot?
+* Over time? 
+
+#### Having made these plots, what are some insights you get from them? Do you see any correlations? Is there a hypothesis you would like to investigate further? What other questions do they lead you to ask?
+* TBD
