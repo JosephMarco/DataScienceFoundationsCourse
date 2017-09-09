@@ -1,0 +1,38 @@
+---
+title: "Draft Stats proposal"
+author: "Joe Marco"
+date: "August 30, 2017"
+output: html_document
+---
+
+### Get going by asking the following questions and looking for the answers with some code and plots:
+
+#### opening zip files in R
+https://stackoverflow.com/questions/3053833/using-r-to-download-zipped-data-file-extract-and-import-data
+
+#### Can you count something interesting?
+* Count total backorders
+* Conditional probability that an item will go on backorder (refer to formula)
+* Distribution of backorders per product type/category
+* count unique skus (distinct?)
+* data points per sku (google check how many times a variables pops up in a vector)
+
+#### Can you find some trends (high, low, increase, decrease, anomalies)?
+* Is there correlation between lead time and skus that went on backorder(ggplot)
+* Correlation between inventory and went on backorder? (ggplot)
+
+#### Can you make a bar plot or a histogram?
+* Utilize ggplot to create some charts and graphs (geom_histogram and or geom_bar)
+
+#### Can you compare two related quantities?
+* Need clarification of "related?" (think they have a relationship)
+* http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
+
+#### Can you make a scatterplot?
+* ggplot (geom_point)
+
+#### Can you make a time-series plot?
+* No time series data in data set
+
+#### Having made these plots, what are some insights you get from them? Do you see any correlations? Is there a hypothesis you would like to investigate further? What other questions do they lead you to ask?
+* TBD next
