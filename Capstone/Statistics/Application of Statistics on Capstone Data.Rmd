@@ -1,0 +1,109 @@
+---
+title: "Statistis Application against Capstone Data"
+author: "Joe Marco"
+date: "September 16th 2017"
+output: html_document
+---
+```{r}
+setwd("~/DataScienceFoundationsCourse/Capstone/Statistics")
+```
+
+### This section of the course challenges the students to ask some questions about our capstone data, and specifically practice the skills we have learned thus far (data visualization, cleansing, application of statistics) 
+
+#### Before getting into the details, lets load some of the libraries we will need and load our data and hide messages and warnings so the RMD file is not extensively long
+```{r}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressWarnings(suppressMessages((capstonedata <- read_csv("capstonedata_clean.csv"))))
+```
+
+#### Let's start by double checking we have no "NA" values and count unique skus (distinct?)
+```{r}
+#the below code can be applies to all columns, for now we will just check all of our skuss (products)
+any(is.na(capstonedata$sku))
+
+nrow(distinct(capstonedata)) 
+```
+
+#### Next we want to explore the total products to found out how many specifically went on backorder vs did not go on backorder. The field "went_on_backorder" is what we will explore further
+```{r}
+table(capstonedata$went_on_backorder)
+```
+
+#### Interesting... now we can see a small percentage of our total products went on backorder, we will want to focus specifically on the products that went on backorder, so lets create a dataframe for those 7602 products
+
+```{r}
+productbackorders <- capstonedata[capstonedata$went_on_backorder == "Yes",]
+```
+
+#### I mentioned a small percentage of our total list of products went on backorder, but lets show the EXACT probability of backorder based off the data we have
+```{r}
+# We can show the probability of backorder based off our data, to do this we will want to divide products that went on backorer over the total amount of products
+Probability_backorder <- nrow(productbackorders) / nrow(capstonedata)
+Probability_backorder
+# Great - we can see our output, but in decimal format, let's throw a function in there to convet the decimal to percent
+percent <- function(x, digits = 2, format = "f", ...) {
+  paste0(formatC(100 * x, format = format, digits = digits, ...), "%")
+}
+# now we simply call our function "percent" on the output of our probability
+percent(Probability_backorder)
+```
+
+#### 
+
+#### Calculate some averages around ALL Products (inventory and lead time). Let's not forget to add in standard deviation calculations as well so we can understand how spread out our averages are. Recall the output of standard deviation: A low standard deviation means that most of the numbers are very close to the average. A high standard deviation means that the numbers are spread out
+```{r}
+
+mean_inventory <- mean(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+mean_leadtime <- mean(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+
+sd_inventory <- sd(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+sd_leadtime <- sd(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+
+mean_inventory
+sd_inventory
+mean_leadtime
+sd_leadtime
+# We can see our variance for inventory is HUGE - which makes sense (some products have very low inventory, some have very high), while the variance for leadtime is roughly close to the average
+```
+
+#### Can you find some trends (high, low, increase, decrease, anomalies)?
+* Let's try a violin plot. We will compare national inventory with lead time. the below plot tells us that we see some groupings for products that went on backorder with lead time in the following groups (0-3, 7-10, 12-13). We then plot the poins on our averages and what we can see is that we have a average at or close to 0 for many of our products which basically means, I have 0 or negative inventory for products that went on backorder, which makes sense and means I may need to increase my inventory for those items.
+```{r}
+ggplot(productbackorders, aes(x = national_inv, y = lead_time))+
+  geom_violin() +
+  stat_summary(fun.y=mean, geom="point", shape=23, size=2)
+```
+
+
+
+#### Now let's make a histogram looking at ALL products vs Backordered products and their associated lead times. We want to measure if their is some association with how long it takes products to be delivered and if that plays into backorders. With the below graphs that longer lead time does not necessarily == backorder. We see a routine spike in products that take 
+* Utilize ggplot to create some charts and graphs (geom_histogram and or geom_bar)
+```{r}
+suppressMessages(library(scales))
+
+ggplot (capstonedata, aes(lead_time)) + 
+  geom_histogram(binwidth = 0.9)+
+  coord_cartesian(xlim = c(0, 55))+
+  ggtitle("All Product data lead times")+
+  scale_y_continuous(name="Total products", labels = comma)
+
+ggplot (productbackorders, aes(lead_time)) + 
+  geom_histogram(binwidth = 0.9)+
+  coord_cartesian(xlim = c(0, 55)) +
+  ggtitle("Backordered Products lead time")
+scale_y_continuous(name="Total backordered products", labels = comma)
+```
+
+#### Lets make a scatter plot looking at SALES VS FORECAST specifically for products that went on backorder. What we can gather from this is that there is some density close to 0, meaning our actual sales is close to $0 and our forecast of sales is close to $0 --- raises the question, WHY are we even making and producing those products?? Additionally but we can see a few data points where we are forcasting $175,000 or more in sales, we NEED to make sure we stock up these products to avoid backorder, otherwise we have a major impact to business revenue. Additionally, there are a few points in which our sales were 40,000 or more over the last 9 months, these appear to be the major revenue making products over the past 9 months that went on backorder, so we should focus on upping our inventory for these products as well
+* ggplot (geom_point)
+```{r}
+ggplot(productbackorders, aes(x=forecast_9_month, y = sales_9_month)) +
+  geom_point()
+```
+
+### Additional items to be investigated in data story report
+* Conditional probability that an item will go on backorder (refer to formula)
+* Distribution of backorders per product type/category??
+* Can you compare two related quantities?
+* http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
