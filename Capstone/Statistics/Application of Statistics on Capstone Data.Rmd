@@ -1,8 +1,10 @@
 ---
-title: "Statistis Application against Capstone Data"
+title: "Statistics Application against Capstone Data"
 author: "Joe Marco"
 date: "September 16th 2017"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 ```{r}
 setwd("~/DataScienceFoundationsCourse/Capstone/Statistics")
@@ -102,7 +104,7 @@ ggplot(productbackorders, aes(x=forecast_9_month, y = sales_9_month)) +
   geom_point()
 ```
 
-### Additional items to be investigated in data story report
+### Additional items to be investigated in final report
 * Conditional probability that an item will go on backorder (refer to formula)
 * Distribution of backorders per product type/category??
 * Can you compare two related quantities?
