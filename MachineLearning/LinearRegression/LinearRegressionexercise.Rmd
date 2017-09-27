@@ -1,0 +1,70 @@
+---
+title: "Linear Regression_ML"
+author: "Joe Marco"
+date: "September 26, 2017"
+output: html_document
+---
+
+## Exercise: least squares regression
+```{r}
+setwd("~/DataScienceFoundationsCourse/MachineLearning/LinearRegression")
+```
+
+
+####Use the /states.rds/ data set. Fit a model predicting energy consumed per capita (energy) from the percentage of residents living in metropolitan areas (metro). Be sure to
+
+```{r}
+states <- readRDS("states.rds")
+```
+
+* 1. Examine/plot the data before fitting the model
+```{r}
+states.en.met <- subset(states, select = c("metro", "energy"))
+summary(states.en.met)
+plot(states.en.met)
+cor(states.en.met, use="pairwise")
+```
+
+* 2. Print and interpret the model `summary'
+
+```{r}
+mod.en.met <- lm(energy ~ metro, data = states)
+summary(mod.en.met)
+```
+
+* 3. `plot' the model to look for deviations from modeling assumptions
+
+```{r}
+plot(mod.en.met)
+```
+
+* Select one or more additional predictors to add to your model and repeat steps 1-3. Is this model significantly better than the model with /metro/ as the only predictor?
+```{r}
+states.en.met.pop.wst <- subset(states, select = c("energy", "metro", "pop", "waste"))
+summary(states.en.met.pop.wst)
+plot(states.en.met.pop.wst)
+cor(states.en.met.pop.wst, use = "pairwise")
+mod.en.met.pop.waste <- lm(energy ~ metro + pop + waste, data = states)
+summary(mod.en.met.pop.waste)
+anova(mod.en.met, mod.en.met.pop.waste)
+```
+
+
+## Exercise: interactions and factors
+
+*Use the states data set.
+
+* 1. Add on to the regression equation that you created in exercise 1 by generating an interaction term and testing the interaction.
+
+```{r}
+mod.en.metro.by.waste <- lm(energy ~ metro * waste, data = states)
+```
+
+
+* 2. Try adding region to the model. Are there significant differences across the four regions?
+
+```{r}
+mod.en.region <- lm(energy ~ metro * waste + region, data = states)
+anova(mod.en.region)
+```
+
