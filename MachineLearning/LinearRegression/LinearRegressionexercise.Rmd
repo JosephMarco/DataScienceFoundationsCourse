@@ -5,48 +5,64 @@ date: "September 26, 2017"
 output: html_document
 ---
 
-## Exercise: least squares regression
+## Exercise: Least Squares Regression
 ```{r}
+suppressMessages(library(ggplot2))
+suppressMessages(library(tidyverse))
 setwd("~/DataScienceFoundationsCourse/MachineLearning/LinearRegression")
 ```
 
 
-####Use the /states.rds/ data set. Fit a model predicting energy consumed per capita (energy) from the percentage of residents living in metropolitan areas (metro). Be sure to
+### Use the /states.rds/ data set. Fit a model predicting energy consumed per capita (energy) from the percentage of residents living in metropolitan areas (metro).
 
 ```{r}
+# read in states file and assign it to the "states" dataframe
 states <- readRDS("states.rds")
+
+#inspect the structure of states
+str(states)
 ```
 
 * 1. Examine/plot the data before fitting the model
 ```{r}
-states.en.met <- subset(states, select = c("metro", "energy"))
-summary(states.en.met)
-plot(states.en.met)
-cor(states.en.met, use="pairwise")
+# create dataframe with the subset of metro and energy fields
+states_en_met <- subset(states, select = c("metro", "energy"))
+
+#inspect the structure of the new data frame
+str(states_en_met)
+
+#inspect further a summary of the new data frame
+summary(states_en_met)
+
+#plot the data frame, as we can see from the below, appears to be a negative correlation hence the best line we could fit against the plot would show that as metro increases, energy levels decrease
+plot(states_en_met)
 ```
 
 * 2. Print and interpret the model `summary'
 
 ```{r}
-mod.en.met <- lm(energy ~ metro, data = states)
-summary(mod.en.met)
+#create a linear model of the assigned data and assign it to model_en_met
+model_en_met <- lm(energy ~ metro, data = states)
+
+#view the summary of our model. We can see that "metro" has significance in our model as defined by the * next to our value
+summary(model_en_met)
 ```
 
 * 3. `plot' the model to look for deviations from modeling assumptions
 
 ```{r}
-plot(mod.en.met)
+plot(model_en_met)
 ```
 
 * Select one or more additional predictors to add to your model and repeat steps 1-3. Is this model significantly better than the model with /metro/ as the only predictor?
 ```{r}
-states.en.met.pop.wst <- subset(states, select = c("energy", "metro", "pop", "waste"))
-summary(states.en.met.pop.wst)
-plot(states.en.met.pop.wst)
-cor(states.en.met.pop.wst, use = "pairwise")
-mod.en.met.pop.waste <- lm(energy ~ metro + pop + waste, data = states)
-summary(mod.en.met.pop.waste)
-anova(mod.en.met, mod.en.met.pop.waste)
+states_en_met_pop <- subset(states, select = c("energy", "metro", "pop"))
+summary(states_en_met_pop)
+plot(states_en_met_pop)
+
+## new model
+model_en_met_pop <- lm(energy ~ metro + pop + waste, data = states)
+summary(model_en_met_pop)
 ```
 
 
@@ -57,14 +73,14 @@ anova(mod.en.met, mod.en.met.pop.waste)
 * 1. Add on to the regression equation that you created in exercise 1 by generating an interaction term and testing the interaction.
 
 ```{r}
-mod.en.metro.by.waste <- lm(energy ~ metro * waste, data = states)
+mod_en_metro_by_waste <- lm(energy ~ metro * waste, data = states)
 ```
 
 
 * 2. Try adding region to the model. Are there significant differences across the four regions?
 
 ```{r}
-mod.en.region <- lm(energy ~ metro * waste + region, data = states)
-anova(mod.en.region)
+mod_en_region <- lm(energy ~ metro * waste + region, data = states)
+anova(mod_en_region)
 ```
 
