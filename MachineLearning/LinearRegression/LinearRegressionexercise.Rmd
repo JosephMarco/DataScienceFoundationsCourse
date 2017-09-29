@@ -34,6 +34,9 @@ str(states_en_met)
 #inspect further a summary of the new data frame
 summary(states_en_met)
 
+# check the correlation
+cor(states_en_met, use="pairwise")
+
 #plot the data frame, as we can see from the below, appears to be a negative correlation hence the best line we could fit against the plot would show that as metro increases, energy levels decrease
 plot(states_en_met)
 ```
@@ -59,6 +62,9 @@ plot(model_en_met)
 states_en_met_pop <- subset(states, select = c("energy", "metro", "pop"))
 summary(states_en_met_pop)
 plot(states_en_met_pop)
+
+# check correlation
+cor(states_en_met_pop, use="pairwise")
 
 ## new model
 model_en_met_pop <- lm(energy ~ metro + pop + waste, data = states)
