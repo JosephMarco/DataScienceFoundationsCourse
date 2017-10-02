@@ -48,14 +48,11 @@ wrkmodel.tab
 
 # Predict the probability of working for each level of marital status.
 predDat <- with(health,
-                expand.grid(age_p = c(33, 63),
-                            sex = "2 Female",
-                            bmi = mean(bmi, na.rm = TRUE),
-                            sleep = mean(sleep, na.rm = TRUE)))
+                expand.grid(r_maritl = c("Divorced", "Married")))
 
 # predict hypertension at those levels
 cbind(predict(wrkmodel, type = "response",
                        se.fit = TRUE, interval="confidence",
-                       newdata = predDat))
+                       newdata = predDat)
 ```
 
