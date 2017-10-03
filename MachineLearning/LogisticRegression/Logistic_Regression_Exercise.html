@@ -211,9 +211,8 @@ coef(summary(wrkmodel))</code></pre>
 ## r_maritl7 Never married                     -4.9638756 6.910023e-07
 ## r_maritl8 Living with partner                3.2197443 1.283050e-03
 ## r_maritl9 Unknown marital status            -0.8022441 4.224118e-01</code></pre>
-<pre class="r"><code>#For example, what we can see with the above coefficient summary is the fact that for marital status' like Divorced, and Living with partner, we have a high coefficient, meaning ever work log odds increase by .73 and .44 respectively. Meaning if you are divorced or living with a partner, you are likely working! Where as something like &quot;Widowed&quot; the ever work log odds would decrease by .68 showing a low probability of working if you are widowed.
-
-# Since most of us are not used to thinking in log odds this is not too helpful. One solution is to transform the coefficients to make them easier to interpret:
+<pre class="r"><code>#For example, what we can see with the above coefficient summary is the fact that for marital status' like Divorced, and Living with partner, we have a high coefficient, meaning ever work log odds increase by .73 and .44 respectively. Meaning if you are divorced or living with a partner, you are likely working! Where as something like &quot;Widowed&quot; the ever work log odds would decrease by .68 showing a low probability of working if you are widowed.</code></pre>
+<pre class="r"><code># Since most of us are not used to thinking in log odds this is not too helpful. One solution is to transform the coefficients to make them easier to interpret:
 
 wrkmodel.tab &lt;- coef(summary(wrkmodel))
 wrkmodel.tab[, &quot;Estimate&quot;] &lt;- exp(coef(wrkmodel))
@@ -239,15 +238,12 @@ wrkmodel.tab</code></pre>
 ## r_maritl8 Living with partner                3.2197443 1.283050e-03
 ## r_maritl9 Unknown marital status            -0.8022441 4.224118e-01</code></pre>
 <pre class="r"><code># Predict the probability of working for each level of marital status.
-predDat &lt;- subset(health)
-
-cbind(predict(wrkmodel, type = &quot;response&quot;,
-                       se.fit = TRUE, interval=&quot;confidence&quot;,
-                       newdata = predDat))</code></pre>
-<pre><code>##                [,1]         
-## fit            Numeric,33014
-## se.fit         Numeric,33014
-## residual.scale 1</code></pre>
+predDat &lt;- with(health,
+                expand.grid(r_maritl = c(&quot;Divorced&quot;, &quot;Married&quot;)))</code></pre>
+</div>
+<div id="predict-hypertension-at-those-levels" class="section level1">
+<h1>predict hypertension at those levels</h1>
+<p>cbind(predict(wrkmodel, type = “response”, se.fit = TRUE, interval=“confidence”, newdata = predDat))</p>
 </div>
 
 
