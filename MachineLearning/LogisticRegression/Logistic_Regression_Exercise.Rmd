@@ -51,13 +51,16 @@ wrkmodel.tab[, "Estimate"] <- exp(coef(wrkmodel))
 wrkmodel.tab
 
 # Predict the probability of working for each level of marital status.
-predDat <- with(health,
-                expand.grid(r_maritl = c("Divorced", "Married")))
+predDat <- with(health$everwrk,
+                expand.grid(age_p = c(33, 63),
+                            r_maritl = c("Divorced", "Married")))
+
+predDat$r_maritl <- unfactor(obj = predDat$r_maritl)
 ```
 
 ```{r}
 # predict hypertension at those levels
-cbind(predict(wrkmodel, type = "response",
+predict(wrkmodel, type = "response",
                        se.fit = TRUE, interval="confidence",
-                       newdata = predDat))
+                       newdata = predDat)
 ```

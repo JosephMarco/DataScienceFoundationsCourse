@@ -53,19 +53,23 @@ plot(clusterwine)
 library(NbClust)
 set.seed(1234)
 nc <- NbClust(wine, min.nc=2, max.nc=15, method="kmeans")
-barplot(table(nc$Best.n[1,]),
-	          xlab="Numer of Clusters", ylab="Number of Criteria",
-		            main="Number of Clusters Chosen by 26 Criteria")
+table(nc$Best.n[1,])
 
 
 # Exercise 3: How many clusters does this method suggest?
-
+# Method suggests 3 clust
+barplot(table(nc$Best.n[1,]),
+        xlab="Numer of Clusters", ylab="Number of Criteria",
+        main="Number of Clusters Chosen by 26 Criteria")
 
 # Exercise 4: Once you've picked the number of clusters, run k-means 
 # using this number of clusters. Output the result of calling kmeans()
 # into a variable fit.km
 
-# fit.km <- kmeans( ... )
+set.seed(1234)
+fit.km <- kmeans(wine, 3, nstart=25)
+fit.km$size
+
 
 # Now we want to evaluate how well this clustering does.
 
@@ -73,9 +77,13 @@ barplot(table(nc$Best.n[1,]),
 # compares to the actual wine types in wine$Type. Would you consider this a good
 # clustering?
 
+table(fit.km$cluster)
+
 
 # Exercise 6:
 # * Visualize these clusters using  function clusplot() from the cluster library
 # * Would you consider this a good clustering?
 
+library(cluster)
+clusplot(fit.km$cluster)
 #clusplot( ... )
