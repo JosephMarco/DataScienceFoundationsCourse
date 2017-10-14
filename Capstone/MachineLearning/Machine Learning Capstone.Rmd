@@ -1,0 +1,30 @@
+---
+title: "Machine Learning Capstone"
+author: "Joe Marco"
+date: "October 13, 2017"
+output: html_document
+---
+
+### Apply machine learning
+
+
+At this point, I have collected my data, cleaned it up, wrangled it into shape and explored it. Now it's time to perform some in-depth data analysis using machine learning. 
+
+* Preferred option I will be choosing to utilize supervised machine learning (specifically logistic regression). The reason why I choose to focus on logistic regression is due to the fact that logistic regression will lead to the outcome (dependent variable) having only a limited number of possible values.
+
+* In our case, will the product go on backorder -- (Yes, No) OR (1, 0) speaking in binary. Wheras another regression type is linear regression in which the outcome (dependent variable) is continuous. It can have any one of an infinite number of possible values, which is less relevant to our use case.
+
+### Predictors (Independent Variables of Choice)
+* Lead Time
+* Inventory Levels
+* forecast_3_month (we will focus on values greater than 0, as a predicted forecast of less than 0 will mess up our predictions)
+* sales_9_month  (we will focus on values greater than 0, as a past sales 9 month of less than 0 or 0 will mess up our predictions)
+
+
+### How will you evaluate the success of your machine learning technique? What metric will you use?
+* I will plan to see how well my logistic regression model can classify product backorders by producing a ROC (Reciever Operating Characteristic)  curve. ROC Curves are used to see how well a classifier can separate positive and negative examples and to identify the best threshold for separating them. This will help me to understand how well my classifiers seperate (will go on backorder vs will not go on backorder) predictions. A perfect classifier would be EXACTLY 1, so we will attempt to get as close to 1 as we can.
+
+#### Out of general interest for clustering, I plan to attempt some cluster exercises against the data to see what kind of clusters I can unravel in the data. This should not be considered in the above steps, and is just an added personal preference to play with an additional method.
+
+#### Wish me luck in the final project deliverable, in which I will put this to use against the actual data set!
+
