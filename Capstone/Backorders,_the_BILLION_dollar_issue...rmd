@@ -1,0 +1,435 @@
+---
+title: <center>"Backorders, the BILLION dollar issue.."</center>
+author: <center> Joe Marco </center>
+date: <center> "October 14, 2017" <center>
+output: html_document
+---
+
+### <b>1. Executive Overview</b>
+The all too frequent feeling of searching for hours online for the perfect item, only to click the "add to cart" option or order button, to find out the product is on "backorder". Sometimes we do not even have this option when searching in a retail store, if a product is sold out, we simply move on 9 times out of 10. But what exactly is backorder?
+
+> "Backorders represent purchase orders made to the supplier for products that are already out of stock from a given location being served. Backordering is the process of selling inventory the company doesn’t have on hand. Backordering takes place only when the demand is captured in a formal manner: for example, in a retail store, most customers would simply move on when facing an out-of-shelf situation, without reporting the missing product to the store. Backorders represent specific challenges in terms of inventory optimization, as backordered units are typically associated with a degree of urgency coming from the client."  ^1^
+
+Now that we understand what a backorder is, why should we care? As end consumers this is typically less of a concern, but for the business who is actually struggling with product backorders, this is of extreme concern. Some companies may think "What's the big deal? The customer wants my product and has no problem waiting for it to be in stock." Some direct business impacts can be seen in the below reference:
+
+> Stock-outs cause a projected <b><span style="color:red">$25 billion in losses</b></span> for individual businesses every year. To a struggling business, simply being out of merchandise doesn’t just put an immediate dent in finances, it can also mean adverse long-term impact such as loss of market share due to customer dissatisfaction, loss of patronage, and negative word-of-mouth.  ^2^
+
+If you are a business owner, or handle directly the shipping of products, you are probably now thinking "OH $%#@!, I had no idea I could be losing that much" .... But what can I do to avoid these issues, and ensure proper branding of my business? Do you have an answer Joe? 
+
+<center> <h2>---------    LEVERAGE YOUR DATA!!     ---------</h2></center>
+
+With this capstone report, I will be attempting to show you exactly the steps you can take (from a dat point of view) to evaluate your supply chain information (inventory, lead time, sales predictions, etc.) and build predictive models that show how AT RISK your company may be for product backorder issues, ultimately contributing to a negative impact on your business. The methods included in this report will encompass Data Science fundamentals (data analysis, data cleansing, statistics, machine learning, easy to understand interpretations of output). The end deliverable as part of this initiative, will be to take product inventory information, and provide you a leveragable model that can be applied to existing data you should have on your product information, so you can better assess your companies risk for product backorders. More importantly, this will allow you to decide what factors you may be able to focus on to avoid this issue in the future.
+
+
+### <b>2. The Plan </b>
+
+Joe, how do you plan to do this?
+
+Plan of action focus areas:
+
+* What can I predict based of a reference data set?
+* What can I measure based off my output?
+* What actions should be taken by a business based off my output?
+* We will attempt to predict back orders based off historical data
+* We will Utilize key pieces of data like inventory levels and lead time to analyze predictions of backorders
+* We will focus on products that have sales in recent months, and have a high consumer need so that are model is optimized for "in demand products"
+
+### <b>3. The Data </b>
+* I will be leveraging existing product backorder data that highlights a variety of information around products, and will usually exist in business systems. A snapshot of the data can be seen below. For information refer to references. ^3^
+
+![Screenshot of some of the data](capstone image.png)
+
+#### Data Definitions:
+
+Moving forward we will specifically focus <span style="color:red">on the items below highlighted red above</span> as these will contribute to our final model of backorder predictions.
+
+* sku - Random ID for the product
+* <span style="color:red">national_inv - Current inventory level for the part</span>
+* <span style="color:red">lead_time - Transit time for product (if available)</span>
+* in_transit_qty - Amount of product in transit from source
+* <span style="color:red">forecast_3_month - Forecast sales for the next 3 months<span>
+* forecast_6_month - Forecast sales for the next 6 months
+* forecast_9_month - Forecast sales for the next 9 months
+* sales_1_month - Sales quantity for the prior 1 month time period
+* sales_3_month - Sales quantity for the prior 3 month time period
+* sales_6_month - Sales quantity for the prior 6 month time period
+* <span style="color:red">sales_9_month - Sales quantity for the prior 9 month time period<span>
+* min_bank - Minimum recommend amount to stock
+* <span style="color:red">potential_issue - Source issue for part identified</span>
+* pieces_past_due - Parts overdue from source
+* perf_6_month_avg - Source performance for prior 6 month period
+* perf_12_month_avg - Source performance for prior 12 month period
+* local_bo_qty - Amount of stock orders overdue
+* deck_risk - Part risk flag
+* oe_constraint - Part risk flag
+* ppap_risk - Part risk flag
+* stop_auto_buy - Part risk flag
+* rev_stop - Part risk flag
+* <span style="color:red">went_on_backorder - Product actually went on backorder. This is the target value.</span>
+
+### 3.1 Data Limitations
+* Now that we have an idea of the data attributes most important to the business case at hand, we can talk about some items that we CANNOT do with the data set given:
+    + We do not have dollar sales figures, meaning no way to guage potential impact of revenue/profit based off backorder issues
+    + We do not have "Source (supplier)" information to be able to determine which suppliers by name are contributing to backorder issues, although we could likely find some commonalities to assume which skus come from the same source
+
+
+### <b>4. Data Wrangling</b>
+One of the most time consuming steps in any data analysis is cleaning the data and getting it into a format amenable for analysis. Data wrangling, also known as Data Munging, is the process of converting data from a raw form into another format that allows for more convenient analysis of the data with the help of semi-automated tools.
+
+Load tidyverse package which includes:
+* ggplot2, for data visualisation.
+* dplyr, for data manipulation.
+* tidyr, for data tidying.
+* readr, for data import.
+* purrr, for functional programming.
+* tibble, for tibbles, a modern re-imagining of data frames
+
+```{r}
+#suppressmessages so we do not get a ton of additional run on loading criteria
+suppressMessages(library(tidyverse))
+```
+
+#### 4.1 Read in the data
+
+Next we will read in our data (ensure you are in the directory where your file is saved)
+```{r}
+#assign data to a dataframe, in this case "capstonedata"
+setwd("~/DataScienceFoundationsCourse/Capstone")
+
+capstonedata <- read.csv('productbackorder.csv')
+
+# you can view your datafram with the code below if you are interested in initial analysis
+# View(capstonedata)
+```
+
+#### 4.2 Rename fields to common business ontologies
+Rename some columns if needed, to common ontologies for you business, so your specific groups can understand which field values refer to what business process (in our case the definitions are above, but we will rename a value for sake of showing how it is done with R in just one line of code). I am renaming min_bank from aboce to min_stock:
+```{r}
+capstonedata <- rename(capstonedata, min_stock = min_bank)
+```
+
+#### 4.3 Check for null values in the data set (all fields)
+Let's analyze our data a bit further by checking for missing values and decide what to do about them across every column in the data frame:
+
+If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null)
+
+```{r}
+any(is.na(capstonedata$sku))
+any(is.na(capstonedata$national_inv))
+any(is.na(capstonedata$lead_time))
+any(is.na(capstonedata$in_transit_qty))
+any(is.na(capstonedata$forecast_3_month))
+any(is.na(capstonedata$forecast_6_month))
+any(is.na(capstonedata$forecast_9_month))
+any(is.na(capstonedata$sales_1_month))
+any(is.na(capstonedata$sales_3_month))
+any(is.na(capstonedata$sales_6_month))
+any(is.na(capstonedata$sales_9_month))
+any(is.na(capstonedata$min_stock))
+any(is.na(capstonedata$potential_issue))
+any(is.na(capstonedata$pieces_past_due))
+any(is.na(capstonedata$perf_6_month_avg))
+any(is.na(capstonedata$perf_12_month_avg))
+any(is.na(capstonedata$local_bo_qty))
+any(is.na(capstonedata$deck_risk))
+any(is.na(capstonedata$oe_constraint))
+any(is.na(capstonedata$ppap_risk))
+any(is.na(capstonedata$stop_auto_buy))
+any(is.na(capstonedata$rev_stop))
+any(is.na(capstonedata$went_on_backorder))
+```
+
+#### 4.4 Replace null values
+BAsed off the above we can see the below columns have some NA or Null values:
+
+* **national_inv**
+* **lead_time**
+* **in_transit_qty**
+* **forecast_3_month**
+* **forecast_6_month**
+* **forecast_9_month**
+* **sales_1_month**
+* **sales_3_month**
+* **sales_6_month**
+* **sales_9_month**
+* **min_stock**
+* **pieces_past_due**
+* **perf_6_month_avg**
+* **perf_12_month_avg**
+* **local_bo_qty**
+
+All these columns are fields that have numbers within the data rows. Thus we will remove the fields with null values and replace them with the average of said fields/columns:
+
+Assign containers to the mean of the associated columns with null values (your mean needs to ignore "!" any NA columns so that the mean does not pull back NA). We will use these next to overwrite the null values
+```{r}
+national_inv_mean <- mean(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+lead_time_mean <- mean(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+in_transit_qty_mean <- mean(capstonedata$in_transit_qty[!is.na(capstonedata$in_transit_qty)])
+forecast_3_month_mean <- mean(capstonedata$forecast_3_month[!is.na(capstonedata$forecast_3_month)])
+forecast_6_month_mean <- mean(capstonedata$forecast_6_month[!is.na(capstonedata$forecast_6_month)])
+forecast_9_month_mean <- mean(capstonedata$forecast_9_month[!is.na(capstonedata$forecast_9_month)])
+sales_1_month_mean <- mean(capstonedata$sales_1_month[!is.na(capstonedata$sales_1_month)])
+sales_3_month_mean <- mean(capstonedata$sales_3_month[!is.na(capstonedata$sales_3_month)])
+sales_6_month_mean <- mean(capstonedata$sales_6_month[!is.na(capstonedata$sales_6_month)])
+sales_9_month_mean <- mean(capstonedata$sales_9_month[!is.na(capstonedata$sales_9_month)])
+min_stock_mean <- mean(capstonedata$min_stock[!is.na(capstonedata$min_stock)])
+pieces_past_due_mean <- mean(capstonedata$pieces_past_due[!is.na(capstonedata$pieces_past_due)])
+perf_6_month_avg_mean <- mean(capstonedata$perf_6_month_avg[!is.na(capstonedata$perf_6_month_avg)])
+perf_12_month_avg_mean <- mean(capstonedata$perf_12_month_avg[!is.na(capstonedata$perf_12_month_avg)])
+local_bo_qty_mean <- mean(capstonedata$local_bo_qty[!is.na(capstonedata$local_bo_qty)])
+```
+
+overwrite the existing columns NA values with the mean (average) of all other values in that column:
+
+```{r}
+capstonedata$national_inv[is.na(capstonedata$national_inv)] <- national_inv_mean
+capstonedata$lead_time[is.na(capstonedata$lead_time)] <- lead_time_mean
+capstonedata$in_transit_qty[is.na(capstonedata$in_transit_qty)] <- in_transit_qty_mean
+capstonedata$forecast_3_month[is.na(capstonedata$forecast_3_month)] <- forecast_3_month_mean
+capstonedata$forecast_6_month[is.na(capstonedata$forecast_6_month)] <- forecast_6_month_mean
+capstonedata$forecast_9_month[is.na(capstonedata$forecast_9_month)] <- forecast_9_month_mean
+capstonedata$sales_1_month[is.na(capstonedata$sales_1_month)] <- sales_1_month_mean
+capstonedata$sales_3_month[is.na(capstonedata$sales_3_month)] <- sales_3_month_mean
+capstonedata$sales_6_month[is.na(capstonedata$sales_6_month)] <- sales_6_month_mean
+capstonedata$sales_9_month[is.na(capstonedata$sales_9_month)] <- sales_9_month_mean
+capstonedata$min_stock[is.na(capstonedata$min_stock)] <- min_stock_mean
+capstonedata$pieces_past_due[is.na(capstonedata$pieces_past_due)] <- pieces_past_due_mean
+capstonedata$perf_6_month_avg[is.na(capstonedata$perf_6_month_avg)] <- perf_6_month_avg_mean
+capstonedata$perf_12_month_avg[is.na(capstonedata$perf_12_month_avg)] <- perf_12_month_avg_mean
+capstonedata$local_bo_qty[is.na(capstonedata$local_bo_qty)] <- local_bo_qty_mean
+```
+
+#### 4.5 Confirm null values are in fact replaced
+If you would like to double check that now Null values are gone, rerun the code below to check for NA values, we will skip this step. All should be FALSE now:
+```{r}#
+any(is.na(capstonedata$sku))
+any(is.na(capstonedata$national_inv))
+any(is.na(capstonedata$lead_time))
+any(is.na(capstonedata$in_transit_qty))
+any(is.na(capstonedata$forecast_3_month))
+any(is.na(capstonedata$forecast_6_month))
+any(is.na(capstonedata$forecast_9_month))
+any(is.na(capstonedata$sales_1_month))
+any(is.na(capstonedata$sales_3_month))
+any(is.na(capstonedata$sales_6_month))
+any(is.na(capstonedata$sales_9_month))
+any(is.na(capstonedata$min_stock))
+any(is.na(capstonedata$potential_issue))
+any(is.na(capstonedata$pieces_past_due))
+any(is.na(capstonedata$perf_6_month_avg))
+any(is.na(capstonedata$perf_12_month_avg))
+any(is.na(capstonedata$local_bo_qty))
+any(is.na(capstonedata$deck_risk))
+any(is.na(capstonedata$oe_constraint))
+any(is.na(capstonedata$ppap_risk))
+any(is.na(capstonedata$stop_auto_buy))
+any(is.na(capstonedata$rev_stop))
+any(is.na(capstonedata$went_on_backorder))
+```
+#### 4.6 Save your cleansed output
+Output the data to a new cleaned file
+```{r}
+write.csv(capstonedata, file = "capstonedata_clean.csv")
+```
+
+### <b>5. Statistics, trends, probability, & visual analysis</b>
+Now that we have our cleansed data set, we will proceed to apply some foundational statistics methods as commonly used in data science initiatives. We will also utilize ggplot (a visualization package in R) to visually analyze our information at a high level
+
+#### 5.1 Unique counting 
+We know that we replaced the null values in our data set earlier. But lets assume someone just hands you a data set and tells you it is clean, we want to do a quick spot check to confirm they are correct. Let's start by double checking we have no "NA" values across the entire data set and count unique skus (products):
+
+```{r}
+any(is.na(capstonedata$sku))
+
+nrow(distinct(capstonedata)) 
+```
+
+#### 5.2 Focus on backordered products
+We want to explore the total products to find out how many specifically went on backorder vs did not go on backorder. The field "went_on_backorder" is what we will explore further
+```{r}
+table(capstonedata$went_on_backorder)
+```
+
+Interesting... now we can see a small percentage of our total products went on backorder, we may want to focus specifically on the products that went on backorder, so lets create a dataframe for those 7602 products
+
+```{r}
+productbackorders <- capstonedata[capstonedata$went_on_backorder == "Yes",]
+```
+
+#### 5.3 Calculate probability
+I mentioned a small percentage of our total list of products went on backorder, but lets show the EXACT probability of backorder based off the data we have
+```{r}
+# We can show the probability of backorder based off our data, to do this we will want to divide products that went on backorer over the total amount of products
+Probability_backorder <- nrow(productbackorders) / nrow(capstonedata)
+Probability_backorder
+# Great - we can see our output, but in decimal format, let's throw a function in there to convet the decimal to percent
+percent <- function(x, digits = 2, format = "f", ...) {
+  paste0(formatC(100 * x, format = format, digits = digits, ...), "%")
+}
+# now we simply call our function "percent" on the output of our probability
+percent(Probability_backorder)
+```
+
+
+#### 5.4 Calculate Averages
+Let's take a look at some averages around ALL Products (inventory and lead time). Let's not forget to add in standard deviation calculations as well so we can understand how spread out our averages are. Recall the output of standard deviation: A low standard deviation means that most of the numbers are very close to the average. A high standard deviation means that the numbers are spread out
+```{r}
+
+mean_inventory <- mean(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+mean_leadtime <- mean(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+
+sd_inventory <- sd(capstonedata$national_inv[!is.na(capstonedata$national_inv)])
+sd_leadtime <- sd(capstonedata$lead_time[!is.na(capstonedata$lead_time)])
+
+mean_inventory
+sd_inventory
+mean_leadtime
+sd_leadtime
+```
+
+We can see our variance for inventory is HUGE - which makes sense (some products have very low inventory, some have very high), while the variance for leadtime is roughly close to the average
+
+#### 5.5 Trends (high, low, increase, decrease, anomalies)
+
+Let's try a violin plot. We will compare national inventory with lead time. 
+```{r}
+ggplot(productbackorders, aes(x = national_inv, y = lead_time))+
+  geom_violin() +
+  stat_summary(fun.y=mean, geom="point", shape=23, size=2)
+```
+
+The above plot tells us that we see some groupings for products that went on backorder with lead time in the following groups (0-3, 7-10, 12-13). We then plot the poins on our averages and what we can see is that we have a average at or close to 0 for many of our products which basically means, I have 0 or negative inventory for products that went on backorder, which makes sense and means I may need to increase my inventory for those items.
+
+
+#### 5.6 Data Visualization 
+Now let's make a histogram looking at ALL products vs Backordered products and their associated lead times. We want to measure if their is some association with how long it takes products to be delivered and if that plays into backorders. With the below graphs that longer lead time does not necessarily == backorder. We will use ggplot to visualize.
+```{r}
+suppressMessages(library(scales))
+
+ggplot (capstonedata, aes(lead_time)) + 
+  geom_histogram(binwidth = 0.9)+
+  coord_cartesian(xlim = c(0, 55))+
+  ggtitle("All Product data lead times")+
+  scale_y_continuous(name="Total products", labels = comma)
+
+ggplot (productbackorders, aes(lead_time)) + 
+  geom_histogram(binwidth = 0.9)+
+  coord_cartesian(xlim = c(0, 55)) +
+  ggtitle("Backordered Products lead time")
+scale_y_continuous(name="Total backordered products", labels = comma)
+```
+
+Lets make a scatter plot looking at SALES VS FORECAST specifically for products that went on backorder. What we can gather from this is that there is some density close to 0, meaning our actual sales is close to 0 dollars and our forecast of sales is close to 0 dollars --- raises the question, WHY are we even making and producing those products?? Additionally but we can see a few data points where we are forcasting $175,000 or more in sales, we NEED to make sure we stock up these products to avoid backorder, otherwise we have a major impact to business revenue. Additionally, there are a few points in which our sales were 40,000 or more over the last 9 months, these appear to be the major revenue making products over the past 9 months that went on backorder, so we should focus on upping our inventory for these products as well
+
+```{r}
+ggplot(productbackorders, aes(x=forecast_9_month, y = sales_9_month)) +
+  geom_point()
+```
+
+### <b> 6. Machine Learning and Predictions</b>
+
+At this point, I have collected my data, cleaned it up, wrangled it into shape and explored it. Now it's time to perform some in-depth data analysis using machine learning.
+
+#### 6.1 Logistic Regression
+
+Preferred option I will be choosing to utilize supervised machine learning (specifically logistic regression). The reason why I choose to focus on logistic regression is due to the fact that logistic regression will lead to the outcome (dependent variable) having only a limited number of possible values.
+
+In our case, will the product go on backorder -- (Yes, No) OR (1, 0) speaking in binary. Wheras another regression type is linear regression in which the outcome (dependent variable) is continuous. It can have any one of an infinite number of possible values, which is less relevant to our use case.
+
+Predictors (Independent Variables of Choice)
+
+* Lead Time
+* Inventory Levels
+* forecast_3_month (we will focus on values greater than 0, as a predicted forecast of less than 0 will mess up our predictions)
+* sales_9_month (we will focus on values greater than 0, as a past sales 9 month of less than 0 or 0 will mess up our predictions)
+* How will you evaluate the success of your machine learning technique? What metric will you use?
+
+I will plan to see how well my logistic regression model can classify product backorders by producing a ROC (Reciever Operating Characteristic) curve. ROC Curves are used to see how well a classifier can separate positive and negative examples and to identify the best threshold for separating them. This will help me to understand how well my classifiers seperate (will go on backorder vs will not go on backorder) predictions. A perfect classifier would be EXACTLY 1, so we will attempt to get as close to 1 as we can.
+Out of general interest for clustering, I plan to attempt some cluster exercises against the data to see what kind of clusters I can unravel in the data. This should not be considered in the above steps, and is just an added personal preference to play with an additional method.
+
+```{r}
+#convert binary values (1 or 0) for "Yes" & "No" options
+indx = sapply(capstonedata,is.factor)
+capstonedata[indx]= lapply(capstonedata[indx],as.character)
+capstonedata[capstonedata == "Yes"] = 1
+capstonedata[capstonedata == "No"] = 0
+capstonedata[indx]= lapply(capstonedata[indx],as.numeric)
+
+#lets check the structure now, we should see no more yes or no values
+str(capstonedata)
+```
+
+##RCODE BELOW, need to tweak and resolve
+
+##### Let's create a training set with the data -- https://stackoverflow.com/questions/38489930/creating-data-partition-in-r
+
+#####if you refer to the above article about data partitioning in r, we can see we will need the "caret" package. Ensure you install this package before running below code
+
+#####load the caret library
+library(caret)
+
+#####set a specified seed
+set.seed(150)
+
+#####utilize the createdatapartition function from "Caret". P = percentage of the data you want in your training set, 
+BackorderTrain <- createDataPartition(capstonedata$went_on_backorder, p = .7,list = FALSE, times = 1)
+
+BackorderTest = capstonedata[-BackorderTrain,]
+
+BackorderTrain = capstonedata[BackorderTrain,]
+
+BackorderTrain$went_on_backorder = as.factor(BackorderTrain$went_on_backorder)
+
+str(BackorderTrain$went_on_backorder)
+
+
+
+##R code below, need to tweak
+
+
+prop.table(table(BackorderTrain$went_on_backorder))
+
+##### showing a value with nothing should i use below?
+##### capstonedata$went_on_backorder <- #####capstonedata$went_on_backorder[!apply(is.na(data) | data == "", 1, all),]
+
+
+
+
+
+
+
+
+
+
+
+
+
+References:
+^1^ https://www.lokad.com/backorders-definition 
+^2^ http://oregonstate.edu/ua/ncs/archives/2011/apr/managing-online-retail-stock-outs-critical-business-success 
+^3^ https://www.kaggle.com/tiredgeek/predict-bo-trial
+
+
+
+
+##### Additional references, personal notes:
+* Conditional probability that an item will go on backorder (refer to formula)
+* Distribution of backorders per product type/category??
+* Can you compare two related quantities?
+* http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
+BackorderLog <- glm(went_on_backorder ~ national_inv + lead_time)
+
+Potential correlation
+Calculate correlations across dataset
+{r}
+library(corrplot)
+
+capnumdata <- lapply(capstonedata[1:16], as.numeric)
+
+corcapdata <- as.matrix(capnumdata)
+
+str(corcapdata)
+
+corcap <- cor(corcapdata[1:3])
+
+corrplot(corcap, method="circle")
