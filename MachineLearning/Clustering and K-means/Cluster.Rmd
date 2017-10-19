@@ -101,12 +101,6 @@ matclplot <- as.matrix(clplot)
 
 clusplot(wine, fit.km$cluster, main = "Clusterplot of wine showing breakdown of 3 clusters")
 
-#iris.x <- iris[, 1:4]
-
-#op <- par(mfrow= c(2,2))
-#clusplot(iris.x, cl3, color = TRUE)
-#U <- par("usr")
-         
 ```
 
 
