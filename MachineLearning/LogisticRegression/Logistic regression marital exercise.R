@@ -46,12 +46,15 @@ wrkmodel.tab
 
 # predict hypertension at those levels
 predDat <- with(health,
-                expand.grid(r_maritl = r_maritl))
+                expand.grid(r_maritl = unique(r_maritl)))
 
 cbind(predDat, predict(wrkmodel, type = "response",
                        se.fit = TRUE, interval="confidence",
                        newdata = predDat))
 
+old.par.settings <- par(cex.lab=1)
+par(old.par.settings)
+
 library(effects)
-plot(allEffects(wrkmodel))
+plot(allEffects(wrkmodel), cex.lab = .2) #rank them in the graph, make sure labels dont overlap, small font or recode
 

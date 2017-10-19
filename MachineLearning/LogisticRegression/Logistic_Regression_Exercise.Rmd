@@ -54,13 +54,13 @@ wrkmodel.tab
 ```{r}
 # Predict the probability of working for each level of marital status.
 predDat <- with(health,
-                expand.grid(r_maritl = r_maritl))
+                expand.grid(r_maritl = unique(r_maritl)))
 ```
 
 
 ```{r}
 # predict hypertension at those levels
-cbind(predDat, predict(wrkmodel, type = "response",
+plotmodel <- cbind(predDat, predict(wrkmodel, type = "response",
                        se.fit = TRUE, interval="confidence",
                        newdata = predDat))
 ```
@@ -68,6 +68,12 @@ cbind(predDat, predict(wrkmodel, type = "response",
 ```{r}
 #Plot the results
 library(effects)
-plot(allEffects(wrkmodel))
+library(scales)
+
+ggplot(plotmodel, aes(x = r_maritl, y=fit))+
+  geom_point() +
+  labs (x= "Marital Status", y= "Likelihood of working?") +
+  scale_x_discrete(labels = wrap_format(10))
+
 ```
 
