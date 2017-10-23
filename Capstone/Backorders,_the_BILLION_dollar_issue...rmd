@@ -360,13 +360,17 @@ str(capstonedata)
 ```
 
 ##RCODE BELOW, need to tweak and resolve
-
+```{r}
 ##### Let's create a training set with the data -- https://stackoverflow.com/questions/38489930/creating-data-partition-in-r
 
 #####if you refer to the above article about data partitioning in r, we can see we will need the "caret" package. Ensure you install this package before running below code
+table(capstonedata$went_on_backorder)
+
+print <- capstonedata$went_on_backorder[-""]
+
 
 #####load the caret library
-library(caret)
+library(caret) # USE the partition data package (use command sample.split from base R)
 
 #####set a specified seed
 set.seed(150)
@@ -378,11 +382,16 @@ BackorderTest = capstonedata[-BackorderTrain,]
 
 BackorderTrain = capstonedata[BackorderTrain,]
 
+#unfactor 
+
 BackorderTrain$went_on_backorder = as.factor(BackorderTrain$went_on_backorder)
 
 str(BackorderTrain$went_on_backorder)
+```
 
 
+
+###wrapup, feedback from audience, presented this model at JnJ confirmed that this added model to the business
 
 ##R code below, need to tweak
 
@@ -433,3 +442,5 @@ str(corcapdata)
 corcap <- cor(corcapdata[1:3])
 
 corrplot(corcap, method="circle")
+
+random forrest decision tree
