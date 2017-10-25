@@ -348,6 +348,12 @@ I will plan to see how well my logistic regression model can classify product ba
 Out of general interest for clustering, I plan to attempt some cluster exercises against the data to see what kind of clusters I can unravel in the data. This should not be considered in the above steps, and is just an added personal preference to play with an additional method.
 
 ```{r}
+#Read in cleansed file from earlier
+capstonedata <- read.csv('capstonedata_clean.csv')
+
+#double check for nulls
+any(is.na(capstonedata))
+
 #convert binary values (1 or 0) for "Yes" & "No" options
 indx = sapply(capstonedata,is.factor)
 capstonedata[indx]= lapply(capstonedata[indx],as.character)
@@ -366,29 +372,56 @@ str(capstonedata)
 #####if you refer to the above article about data partitioning in r, we can see we will need the "caret" package. Ensure you install this package before running below code
 table(capstonedata$went_on_backorder)
 
-print <- capstonedata$went_on_backorder[-""]
-
 
 #####load the caret library
-library(caret) # USE the partition data package (use command sample.split from base R)
+library(caret)
+library(caTools)
+# USE the partition data package (use command sample.split from base R)
 
 #####set a specified seed
 set.seed(150)
 
-#####utilize the createdatapartition function from "Caret". P = percentage of the data you want in your training set, 
-BackorderTrain <- createDataPartition(capstonedata$went_on_backorder, p = .7,list = FALSE, times = 1)
+#####utilize the subset function from "caTools". SplitRatio = percentage of the data you want in your training set, 
 
-BackorderTest = capstonedata[-BackorderTrain,]
+split = sample.split(capstonedata$went_on_backorder, SplitRatio = .7)
+split
 
-BackorderTrain = capstonedata[BackorderTrain,]
+#Define train and test sets
+BackorderTrain = subset(capstonedata, split == TRUE)
+BackorderTest = subset(capstonedata, split == FALSE)
 
-#unfactor 
+#eliminate NAs from train set
+BackorderTrain <- na.omit(BackorderTrain)
 
-BackorderTrain$went_on_backorder = as.factor(BackorderTrain$went_on_backorder)
+#count rows of train and test 
+nrow(BackorderTrain)
+nrow(BackorderTest)
 
-str(BackorderTrain$went_on_backorder)
+#use glm function
+Backorderlog <- glm(went_on_backorder ~ lead_time + national_inv, data = BackorderTrain, family = binomial)
+
+#view summary of glm function
+summary(Backorderlog)
+
+#make predictions
+predictTrain <- predict(Backorderlog, type = "response")
+summary(predictTrain)
+
+
+tapply(predictTrain, BackorderTrain$went_on_backorder, mean)
+
+table(BackorderTrain$went_on_backorder, predictTrain > .7)
+
 ```
 
+```{r}
+library(ROCR)
+
+ROCRpred <- prediction(predictTrain, BackorderTrain$went_on_backorder)
+ROCRperf <- performance(ROCRpred, "tpr", "fpr")
+plot(ROCRperf)
+plot(ROCRperf, colorize = TRUE)
+```
 
 
 ###wrapup, feedback from audience, presented this model at JnJ confirmed that this added model to the business
