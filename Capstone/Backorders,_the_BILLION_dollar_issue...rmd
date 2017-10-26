@@ -239,6 +239,8 @@ Now that we have our cleansed data set, we will proceed to apply some foundation
 We know that we replaced the null values in our data set earlier. But lets assume someone just hands you a data set and tells you it is clean, we want to do a quick spot check to confirm they are correct. Let's start by double checking we have no "NA" values across the entire data set and count unique skus (products):
 
 ```{r}
+capstonedata <- read.csv('capstonedata_clean.csv')
+
 any(is.na(capstonedata$sku))
 
 nrow(distinct(capstonedata)) 
@@ -347,6 +349,7 @@ Predictors (Independent Variables of Choice)
 I will plan to see how well my logistic regression model can classify product backorders by producing a ROC (Reciever Operating Characteristic) curve. ROC Curves are used to see how well a classifier can separate positive and negative examples and to identify the best threshold for separating them. This will help me to understand how well my classifiers seperate (will go on backorder vs will not go on backorder) predictions. A perfect classifier would be EXACTLY 1, so we will attempt to get as close to 1 as we can.
 Out of general interest for clustering, I plan to attempt some cluster exercises against the data to see what kind of clusters I can unravel in the data. This should not be considered in the above steps, and is just an added personal preference to play with an additional method.
 
+Start by reading in cleansed data, then convert yes & nos to binary values (1 or 0)
 ```{r}
 #Read in cleansed file from earlier
 capstonedata <- read.csv('capstonedata_clean.csv')
@@ -365,41 +368,50 @@ capstonedata[indx]= lapply(capstonedata[indx],as.numeric)
 str(capstonedata)
 ```
 
-##RCODE BELOW, need to tweak and resolve
+#### Build your Logistic Regression Model
 ```{r}
-##### Let's create a training set with the data -- https://stackoverflow.com/questions/38489930/creating-data-partition-in-r
+##### Let's create a training set with the data -- 
 
-#####if you refer to the above article about data partitioning in r, we can see we will need the "caret" package. Ensure you install this package before running below code
 table(capstonedata$went_on_backorder)
 
-
-#####load the caret library
+#####load the caret library and caTools
 library(caret)
 library(caTools)
-# USE the partition data package (use command sample.split from base R)
 
 #####set a specified seed
 set.seed(150)
 
-#####utilize the subset function from "caTools". SplitRatio = percentage of the data you want in your training set, 
+#####utilize the subset function from "caTools". SplitRatio = percentage of the original data you want in your training set
 
 split = sample.split(capstonedata$went_on_backorder, SplitRatio = .7)
-split
+table(split)
 
 #Define train and test sets
 BackorderTrain = subset(capstonedata, split == TRUE)
 BackorderTest = subset(capstonedata, split == FALSE)
 
-#eliminate NAs from train set
+#eliminate NAs from train set, which may have been created with converting values to binary
 BackorderTrain <- na.omit(BackorderTrain)
 
-#count rows of train and test 
+#count rows of train and test
 nrow(BackorderTrain)
 nrow(BackorderTest)
 
-#use glm function
+#use glm function with two different models. First we will start with 4 predictors
+model_more_predictors <- glm(went_on_backorder ~ lead_time + national_inv + forecast_3_month + sales_9_month, data = BackorderTrain, family = binomial)
+
+#create another model with less predictors (2 this time)
 Backorderlog <- glm(went_on_backorder ~ lead_time + national_inv, data = BackorderTrain, family = binomial)
 
+#Evaluate the 2 models against each other:
+anova(model_more_predictors, Backorderlog, test = "LRT")
+
+```
+
+> A logistic regression is said to provide a better fit to the data if it demonstrates an improvement over a model with fewer predictors. This is performed using the likelihood ratio test, which compares the likelihood of the data under the full model against the likelihood of the data under a model with fewer predictors. Removing predictor variables from a model will almost always make the model fit less well (i.e. a model will have a lower log likelihood), but it is necessary to test whether the observed difference in model fit is statistically significant. Given that (H_0) holds that the reduced model is true, a p-value for the overall model fit statistic that is less than (0.05) would compel us to reject the null hypothesis. It would provide evidence against the reduced model in favor of the current model. The likelihood ratio test can be performed in R using the lrtest() function from the lmtest package or using the anova() function in base.^4^
+
+We will move forward with the model with less predictors as this will give us a better model.
+```{r}
 #view summary of glm function
 summary(Backorderlog)
 
@@ -407,13 +419,31 @@ summary(Backorderlog)
 predictTrain <- predict(Backorderlog, type = "response")
 summary(predictTrain)
 
+#double check rows in train set and predict set are exactly the same, (THESE NEED TO BE THE SAME FOR YOUR GLM FUNCTION TO WORK)
+nrow(BackorderTrain)
+length(predictTrain)
 
 tapply(predictTrain, BackorderTrain$went_on_backorder, mean)
 
-table(BackorderTrain$went_on_backorder, predictTrain > .7)
+table(BackorderTrain$went_on_backorder, predictTrain > .2)
+
+#Let's check some values best off our model:
+
+#overall Accuracy
+1173561/1181502
+
+#Overall Error Rate
+7941/1181502
+
+#calculate sensitivity
+3/7905
+
+#Calculate specificity
+1173558/1173597
 
 ```
 
+#### Let's place our values on a Reciever Operator Characteristic Curve (ROC)
 ```{r}
 library(ROCR)
 
@@ -421,6 +451,20 @@ ROCRpred <- prediction(predictTrain, BackorderTrain$went_on_backorder)
 ROCRperf <- performance(ROCRpred, "tpr", "fpr")
 plot(ROCRperf)
 plot(ROCRperf, colorize = TRUE)
+```
+
+Now we want to make predictions on a test set to compute out-of-sample metrics
+
+```{r}
+predictTest <- predict(Backorderlog, type="response", newdata = BackorderTest)
+summary(predictTest)
+
+tapply(predictTest, BackorderTest$went_on_backorder, mean)
+
+table(BackorderTest$went_on_backorder, predictTest > .2)
+
+#out of sample accuracy:
+502955/506358
 ```
 
 
@@ -450,6 +494,7 @@ References:
 ^1^ https://www.lokad.com/backorders-definition 
 ^2^ http://oregonstate.edu/ua/ncs/archives/2011/apr/managing-online-retail-stock-outs-critical-business-success 
 ^3^ https://www.kaggle.com/tiredgeek/predict-bo-trial
+^4^ https://gist.githubusercontent.com/MartinMacharia/b23c5450c72693c54b6f/raw/0a1a52625d14f228ff2e541b4998b64cbb505f64/Evaluating%2520Logistic%2520Regression%2520Models%2520in%2520R 
 
 
 
