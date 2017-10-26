@@ -110,7 +110,6 @@ length(predictTrain)
 
 tapply(predictTrain, BackorderTrain$went_on_backorder, mean)
 
-table(BackorderTrain$went_on_backorder, predictTrain > .8)
 
 
 #calculate sensitivity
@@ -118,6 +117,9 @@ table(BackorderTrain$went_on_backorder, predictTrain > .8)
 
 #Calculate specificity
 1103232/1103263
+
+#accuracy
+1103248/1110919
 
 library(ROCR)
 
