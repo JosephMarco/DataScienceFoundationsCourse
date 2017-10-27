@@ -55,9 +55,18 @@ library(ROCR)
 
 ROCRpred <- prediction(predictTrain, BackorderTrain$went_on_backorder)
 ROCRperf <- performance(ROCRpred, "tpr", "fpr")
-plot(ROCRperf)
-plot(ROCRperf, colorize = TRUE)
+plot(ROCRperf, colorize = TRUE, main = "ROC Curve", ylab = "Sensitivity (True positive rate)", xlab = "1-Sensitivity (False positive rate)")
+abline(a=0, b=1)
 
+auc <-performance(ROCRpred, "auc")
+
+auc <- unlist(slot(auc, "y.values"))
+
+auc
+
+auc <- round(auc, 4)
+
+legend(.6, .2, auc, title = "AUC")
 
 model_more_predictors <- glm(went_on_backorder ~ lead_time + national_inv + forecast_3_month + sales_9_month, data = BackorderTrain, family = binomial)
 

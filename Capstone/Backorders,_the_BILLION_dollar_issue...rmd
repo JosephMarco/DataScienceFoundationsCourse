@@ -457,15 +457,35 @@ library(ROCR)
 
 ROCRpred <- prediction(predictTrain, BackorderTrain$went_on_backorder)
 ROCRperf <- performance(ROCRpred, "tpr", "fpr")
-plot(ROCRperf)
-abline(a=0, b= 1)
-plot(ROCRperf, colorize = TRUE)
-abline(a=0, b= 1)
+plot(ROCRperf, colorize = TRUE, main = "ROC Curve", ylab = "Sensitivity (True positive rate)", xlab = "1-Sensitivity (False positive rate)")
+abline(a=0, b=1)
 
 # Calculate the AUC (area under the curver)
-auc.perf <- performance(ROCRpred, measure = "auc")
-auc.perf@y.values
+auc <-performance(ROCRpred, "auc")
+auc <- unlist(slot(auc, "y.values"))
+
+#run AUC to see the number
+auc
+
+#round to less decimals
+auc <- round(auc, 4)
+
+legend(.6, .2, auc, title = "AUC")
+
 ```
+
+Interpretations of model based on AUC measures, can be seen below. Although my AUC did not hit the upper quantile of excellent or good, for a rookie and amateur .7 is not so bad for my first try!
+
+* 0.9 < AUC < 1.0  =   excellent
+
+* 0.8 < AUC < 0.9  =   good
+
+* 0.7 < AUC < 0.8  =   okay
+
+* 0.6 < AUC 0.7    =   not good
+
+* 0.5 < AUC < 0.6  =   failed
+
 
 #### 6.5 Out of sample metrics
 
