@@ -1,8 +1,10 @@
 ---
-title: <center>"Backorders, the BILLION dollar issue.."</center>
-author: <center> Joe Marco </center>
-date: <center> "October 14, 2017" <center>
-output: html_document
+title: "<center>Backorders, the BILLION dollar issue..</center>"
+author: "<center> Joe Marco </center>"
+date: "<center> October 14, 2017 <center>"
+output:
+  html_document: default
+  word_document: default
 ---
 
 ### <b>1. Executive Overview</b>
@@ -111,10 +113,9 @@ capstonedata <- rename(capstonedata, min_stock = min_bank)
 #### 4.3 Check for null values in the data set (all fields)
 Let's analyze our data a bit further by checking for missing values and decide what to do about them across every column in the data frame:
 
-If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null)
+If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null). We will not run this code now, as it will give our report unnecessary length while each line generates a true or false.
 
-```{r}
-any(is.na(capstonedata$sku))
+>any(is.na(capstonedata$sku))
 any(is.na(capstonedata$national_inv))
 any(is.na(capstonedata$lead_time))
 any(is.na(capstonedata$in_transit_qty))
@@ -137,7 +138,6 @@ any(is.na(capstonedata$ppap_risk))
 any(is.na(capstonedata$stop_auto_buy))
 any(is.na(capstonedata$rev_stop))
 any(is.na(capstonedata$went_on_backorder))
-```
 
 #### 4.4 Replace null values
 BAsed off the above we can see the below columns have some NA or Null values:
@@ -368,20 +368,20 @@ capstonedata[indx]= lapply(capstonedata[indx],as.numeric)
 str(capstonedata)
 ```
 
-#### Build your Logistic Regression Model
+#### 6.2 Build your Logistic Regression Model(s)
 ```{r}
-##### Let's create a training set with the data -- 
-
+# Let's create a training set with the data -- 
+# Revisit your backorder numbers on the data set if you forget. 0 = no backorder, 1 = backorder
 table(capstonedata$went_on_backorder)
 
-#####load the caret library and caTools
+#load the caret library and caTools
 library(caret)
 library(caTools)
 
-#####set a specified seed
+#set a specified seed
 set.seed(150)
 
-#####utilize the subset function from "caTools". SplitRatio = percentage of the original data you want in your training set
+#utilize the subset function. SplitRatio = percentage of the original data you want in your training set
 
 split = sample.split(capstonedata$went_on_backorder, SplitRatio = .7)
 table(split)
@@ -419,6 +419,12 @@ summary(Backorderlog)
 predictTrain <- predict(Backorderlog, type = "response")
 summary(predictTrain)
 
+#based off our predictions we can view the head of our predicted set (likelihood of backorder, and we see for the first few records a VERY LOW percentage of backorder .7, .6, etc..)
+head(predictTrain)
+
+#we can revist the actual measures of our capstone data set for the first few values and see that the head of our data did not go on backorder, so our predictions were accurate in such that the prediction likelihood was correct. 
+head(capstonedata$went_on_backorder)
+
 #double check rows in train set and predict set are exactly the same, (THESE NEED TO BE THE SAME FOR YOUR GLM FUNCTION TO WORK)
 nrow(BackorderTrain)
 length(predictTrain)
@@ -427,8 +433,10 @@ tapply(predictTrain, BackorderTrain$went_on_backorder, mean)
 
 table(BackorderTrain$went_on_backorder, predictTrain > .2)
 
-#Let's check some values best off our model:
+```
 
+#### 6.3 Model assessment
+```{r}
 #overall Accuracy
 1173561/1181502
 
@@ -440,18 +448,26 @@ table(BackorderTrain$went_on_backorder, predictTrain > .2)
 
 #Calculate specificity
 1173558/1173597
-
 ```
 
-#### Let's place our values on a Reciever Operator Characteristic Curve (ROC)
+#### 6.4 ROC Curve
+Let's place our values on a Reciever Operator Characteristic Curve (ROC)
 ```{r}
 library(ROCR)
 
 ROCRpred <- prediction(predictTrain, BackorderTrain$went_on_backorder)
 ROCRperf <- performance(ROCRpred, "tpr", "fpr")
 plot(ROCRperf)
+abline(a=0, b= 1)
 plot(ROCRperf, colorize = TRUE)
+abline(a=0, b= 1)
+
+# Calculate the AUC (area under the curver)
+auc.perf <- performance(ROCRpred, measure = "auc")
+auc.perf@y.values
 ```
+
+#### 6.5 Out of sample metrics
 
 Now we want to make predictions on a test set to compute out-of-sample metrics
 
@@ -465,30 +481,23 @@ table(BackorderTest$went_on_backorder, predictTest > .2)
 
 #out of sample accuracy:
 502955/506358
+
+#lets plot the accuracy on a graph
+acc.perf <- performance(ROCRpred, measure = "acc")
+plot(acc.perf)
 ```
 
+#### 7. Conclusions and Recommendations
+* A trained model can accurately identify likelihood of product backorders based off inventory levels and lead time.
 
-###wrapup, feedback from audience, presented this model at JnJ confirmed that this added model to the business
+* In practice, the probabilities returned from the logistic regression model can be used to prioritize how "AT RISK" your supply chain pipeline could be due to lead time & inventory issues.
 
-##R code below, need to tweak
+* This model can be used to feed another out of sample set of data, from any big business, in which we stated a list of products, their lead time to delivery, and their inventory to get some rough predictions on likelihood of backorders.
 
+* We can assume that if our predicted true backorders were a larger number, then we would have an issue that we could act on and increase/replenish inventory, or look into product transport and see how we can cut down lead time.
 
-prop.table(table(BackorderTrain$went_on_backorder))
-
-##### showing a value with nothing should i use below?
-##### capstonedata$went_on_backorder <- #####capstonedata$went_on_backorder[!apply(is.na(data) | data == "", 1, all),]
-
-
-
-
-
-
-
-
-
-
-
-
+#### Where do we go from here? 
+We want to keep this effort in mind whenever dealing with any type of business data that touches supply chain or inventory levels of products. Utilizing the methodologies mentioned here, we can directly take data from existing business systems, feed our models we outlined, continuously tweak and alter our methods to get the best measures and predictions, and ultimately save our business from the "Billion dollar issue".
 
 References:
 ^1^ https://www.lokad.com/backorders-definition 
@@ -496,29 +505,3 @@ References:
 ^3^ https://www.kaggle.com/tiredgeek/predict-bo-trial
 ^4^ https://gist.githubusercontent.com/MartinMacharia/b23c5450c72693c54b6f/raw/0a1a52625d14f228ff2e541b4998b64cbb505f64/Evaluating%2520Logistic%2520Regression%2520Models%2520in%2520R 
 
-
-
-
-##### Additional references, personal notes:
-* Conditional probability that an item will go on backorder (refer to formula)
-* Distribution of backorders per product type/category??
-* Can you compare two related quantities?
-* http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
-BackorderLog <- glm(went_on_backorder ~ national_inv + lead_time)
-
-Potential correlation
-Calculate correlations across dataset
-{r}
-library(corrplot)
-
-capnumdata <- lapply(capstonedata[1:16], as.numeric)
-
-corcapdata <- as.matrix(capnumdata)
-
-str(corcapdata)
-
-corcap <- cor(corcapdata[1:3])
-
-corrplot(corcap, method="circle")
-
-random forrest decision tree

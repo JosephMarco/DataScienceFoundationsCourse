@@ -1,3 +1,5 @@
+setwd("~/DataScienceFoundationsCourse/Capstone")
+
 capstonedata <- read.csv('capstonedata_clean.csv')
 
 any(is.na(capstonedata$sku))
@@ -63,10 +65,10 @@ library(lmtest)
 anova(model_more_predictors, Backorderlog, test = "LRT")
 
 #overall Accuracy
-accuracy <- 1173561/1181502
+1173561/1181502
 
 #Overall Error Rate
-error_rate < 7941/1181502
+7941/1181502
 
 #calculate sensitivity
 3/7905
@@ -81,5 +83,44 @@ tapply(predictTest, BackorderTest$went_on_backorder, mean)
 table(BackorderTest$went_on_backorder, predictTest > .2)
 
 502955/506358
+
+library(randomForest)
+library(randomForestSRC)
+library(randomForestExplainer)
+
+set.seed(2017)
+#training Sample with 300 observations
+train=sample(1:nrow(capstonedata),300)
+
+capstone.rf <- randomForest(sku ~ . , data = capstonedata , subset = train)
+
+capstone.rf
+
+min_depth_frame <- min_depth_distribution(capstone.rf)
+
+head(min_depth_frame, n = 10)
+
+plot_min_depth_distribution(min_depth_frame)
+
+plot_min_depth_distribution(min_depth_frame, mean_sample = "relevant_trees", k = 15)
+
+importance_frame <- measure_importance(capstone.rf)
+
+importance_frame
+
+plot_multi_way_importance(importance_frame, size_measure = "no_of_nodes")
+
+plot(capstone.rf)
+
+plot_importance_ggpairs(importance_frame)
+
+plot_importance_rankings(importance_frame)
+
+plot_predict_interaction(capstone.rf, capstonedata, "rm", "lstat")
+
+explain_forest(capstone.rf, interactions = TRUE, data = capstonedata)
+
+min_dept
+
 
 
