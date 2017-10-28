@@ -3,9 +3,11 @@ title: "<center>Backorders, the BILLION dollar issue..</center>"
 author: "<center> Joe Marco </center>"
 date: "<center> October 14, 2017 <center>"
 output:
-  html_document: default
   word_document: default
+  html_document: default
 ---
+
+<center><span style="color:red">***Disclaimer: This completed capstone report is intended for interpretation for business members, not s much for data scientists. As such the level of detail in terms of the methods applied and code specifics will be interpreted at a high level. The capstone report was a project wrapup from the author (Joe Marco), who had limited R & data science knowledge prior to this initiative. See the end of the report for more information about the author*** </span></center
 
 ### <b>1. Executive Overview</b>
 The all too frequent feeling of searching for hours online for the perfect item, only to click the "add to cart" option or order button, to find out the product is on "backorder". Sometimes we do not even have this option when searching in a retail store, if a product is sold out, we simply move on 9 times out of 10. But what exactly is backorder?
@@ -20,7 +22,7 @@ If you are a business owner, or handle directly the shipping of products, you ar
 
 <center> <h2>---------    LEVERAGE YOUR DATA!!     ---------</h2></center>
 
-With this capstone report, I will be attempting to show you exactly the steps you can take (from a dat point of view) to evaluate your supply chain information (inventory, lead time, sales predictions, etc.) and build predictive models that show how AT RISK your company may be for product backorder issues, ultimately contributing to a negative impact on your business. The methods included in this report will encompass Data Science fundamentals (data analysis, data cleansing, statistics, machine learning, easy to understand interpretations of output). The end deliverable as part of this initiative, will be to take product inventory information, and provide you a leveragable model that can be applied to existing data you should have on your product information, so you can better assess your companies risk for product backorders. More importantly, this will allow you to decide what factors you may be able to focus on to avoid this issue in the future.
+With this capstone report, I will be attempting to show you exactly the steps you can take (from a data point of view) to evaluate your supply chain information (inventory, lead time, sales predictions, etc.) and build predictive models that show how AT RISK your company may be for product backorder issues, ultimately contributing to a negative impact on your business. The methods included in this report will encompass Data Science fundamentals (data analysis, data cleansing, statistics, machine learning, easy to understand interpretations of output). The end deliverable as part of this initiative, will be to take product inventory information, and provide you a leverageable model that can be applied to existing data you should have on your product information, so you can better assess your companies risk for product backorders. More importantly, this will allow you to decide what factors you may be able to focus on to avoid this issue in the future.
 
 
 ### <b>2. The Plan </b>
@@ -324,9 +326,50 @@ scale_y_continuous(name="Total backordered products", labels = comma)
 Lets make a scatter plot looking at SALES VS FORECAST specifically for products that went on backorder. What we can gather from this is that there is some density close to 0, meaning our actual sales is close to 0 dollars and our forecast of sales is close to 0 dollars --- raises the question, WHY are we even making and producing those products?? Additionally but we can see a few data points where we are forcasting $175,000 or more in sales, we NEED to make sure we stock up these products to avoid backorder, otherwise we have a major impact to business revenue. Additionally, there are a few points in which our sales were 40,000 or more over the last 9 months, these appear to be the major revenue making products over the past 9 months that went on backorder, so we should focus on upping our inventory for these products as well
 
 ```{r}
-ggplot(productbackorders, aes(x=forecast_9_month, y = sales_9_month)) +
-  geom_point()
+ggplot(productbackorders, aes(x = sales_9_month, y =  forecast_9_month)) + 
+  geom_point(shape = 1)+
+  geom_smooth(method=lm , color="red", se=TRUE)+
+  ggtitle("Plotting past sales against forecasted sales with linear pattern")
+
+# Smoothed conditional means aids the eye in seeing patterns in the presence of overplotting. geom_smooth and stat_smooth are effectively aliases: they both use the same arguments.
 ```
+
+Let's cut up some of our data, specifically looking at lead time and inventory, and plotting some baselines for "low", "medium", "high" to see if we can gather some insight.
+```{r}
+#cut the data
+cutinv <- cut(capstonedata$national_inv,3,labels=c("low","middle","high"))
+
+#check out counts
+table(cutinv)
+
+#add to dataset
+capstonedata$invlevel<- cut(capstonedata$national_inv,3,labels=c("low","middle","high"))
+
+#cut the data on lead time
+cutlead <- cut(capstonedata$lead_time,3,labels=c("low","middle","high"))
+
+#check out counts
+table(cutlead)
+
+#add to data set
+capstonedata$leadlevel<- cut(capstonedata$lead_time,3,labels=c("low","middle","high"))
+
+#plot lead level category against past sales to understand if there is any correlation. We can see that alot of products we sold had a low lead time, a few had middle level lead time, and less than that had high lead time
+ggplot(capstonedata, aes(x=as.factor(leadlevel), y=sales_9_month)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  xlab("Lead Time Level")+
+  scale_y_continuous(labels = scales::comma)+
+  ggtitle("Viewing lead time level categories against past sales")
+
+#plot inventory levels on data and see if there is correlation on pas sales, and amount of inventory business has available. We can see we have low inventory for alot of things we sold!
+ggplot(capstonedata, aes(x=as.factor(invlevel), y=sales_9_month)) + 
+  geom_boxplot(fill="slateblue", alpha=0.2) + 
+  xlab("Inventory Level")+
+  scale_y_continuous(labels = scales::comma)+
+  ggtitle("Viewing inventory level categories against past sales")
+```
+
+
 
 ### <b> 6. Machine Learning and Predictions</b>
 
@@ -474,7 +517,7 @@ legend(.6, .2, auc, title = "AUC")
 
 ```
 
-Interpretations of model based on AUC measures, can be seen below. Although my AUC did not hit the upper quantile of excellent or good, for a rookie and amateur .7 is not so bad for my first try!
+Interpretations of model based on AUC measures, can be seen below. Although my AUC did not hit the upper quantile of excellent or good, for a rookie and amateur .7 is not so bad for my first try! With more time, and more experience/expertise, I would continue to play with different variables and combinations to try to improve this overall AUC measure, which equates to a more efficient model.
 
 * 0.9 < AUC < 1.0  =   excellent
 
@@ -507,7 +550,7 @@ acc.perf <- performance(ROCRpred, measure = "acc")
 plot(acc.perf)
 ```
 
-#### 7. Conclusions and Recommendations
+#### <b> 7. Conclusions and Recommendations </b>
 * A trained model can accurately identify likelihood of product backorders based off inventory levels and lead time.
 
 * In practice, the probabilities returned from the logistic regression model can be used to prioritize how "AT RISK" your supply chain pipeline could be due to lead time & inventory issues.
@@ -517,11 +560,34 @@ plot(acc.perf)
 * We can assume that if our predicted true backorders were a larger number, then we would have an issue that we could act on and increase/replenish inventory, or look into product transport and see how we can cut down lead time.
 
 #### Where do we go from here? 
-We want to keep this effort in mind whenever dealing with any type of business data that touches supply chain or inventory levels of products. Utilizing the methodologies mentioned here, we can directly take data from existing business systems, feed our models we outlined, continuously tweak and alter our methods to get the best measures and predictions, and ultimately save our business from the "Billion dollar issue".
+The best recommendation I could give off the analysis and interpretations we have done is to place heavy focus on inventory and lead time around your product data. Using existing models and those outlined in this project, we can continuously measure our business performance. When we know we have a forecast of certain items, we can focus on either upping our inventory for those products, or cut down lead time for said products. We want to keep this effort in mind whenever dealing with any type of business data that touches supply chain or inventory levels of products. Utilizing the methodologies mentioned here, we can directly take data from existing business systems, feed our models we outlined, continuously tweak and alter our methods to get the best measures and predictions, and ultimately save our business from the "Billion dollar issue".
+
+Let's keep in mind a very important concept. DATA SCIENCE and MACHINE LEARNING are not a foolproof solution. Any initiatives around Machine learning and data science should ALWAYS be cross verified with other solutions to ensure proper business decisions. While this is a great set of tools, to help unravel insights not readily thought of before, we need to ensure a proper understanding that Data Science is not the answer to all business problems. I leave you with a parting graph from gartner which highlights the "overhype" of some methodologies like machine learning. While it is a great tool to compliment any business initiatives, it should not be used as the only srategy when making critical business decisions.
+
+<center>![](hype_cycle.png)</center>
 
 References:
+
 ^1^ https://www.lokad.com/backorders-definition 
+
 ^2^ http://oregonstate.edu/ua/ncs/archives/2011/apr/managing-online-retail-stock-outs-critical-business-success 
+
 ^3^ https://www.kaggle.com/tiredgeek/predict-bo-trial
+
 ^4^ https://gist.githubusercontent.com/MartinMacharia/b23c5450c72693c54b6f/raw/0a1a52625d14f228ff2e541b4998b64cbb505f64/Evaluating%2520Logistic%2520Regression%2520Models%2520in%2520R 
+
+^5^ https://www.gartner.com/smarterwithgartner/7-technologies-underpin-the-hype-cycle-for-the-internet-of-things-2016/
+
+
+
+<center> About the author:</center>
+
+
+<center>![](JoeMarco.png)</center>
+
+<center>Joe Marco is an ccomplished IT healthcare leader offering over 5 years of experience driving innovation through technology in partnership with multiple business functions. Creative and dynamic thinker with proven expertise executing technology solutions to solve business problems leading to efficiency and profitability gains. Adept at working effectively to achieve goals both as a cross-functional global team member and individual contributor.</center>
+
+<center><a href="https://www.linkedin.com/in/joemarco/">LinkedIn</a> 
+<a href="https://github.com/JosephMarco">GitHub</a></center>
+
 
