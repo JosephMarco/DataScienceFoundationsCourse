@@ -3,11 +3,11 @@ title: "<center>Backorders, the BILLION dollar issue..</center>"
 author: "<center> Joe Marco </center>"
 date: "<center> October 14, 2017 <center>"
 output:
-  word_document: default
   html_document: default
+  word_document: default
 ---
 
-<center><span style="color:red">***Disclaimer: This completed capstone report is intended for interpretation for business members, not s much for data scientists. As such the level of detail in terms of the methods applied and code specifics will be interpreted at a high level. The capstone report was a project wrapup from the author (Joe Marco), who had limited R & data science knowledge prior to this initiative. See the end of the report for more information about the author*** </span></center
+<center><span style="color:red">***Disclaimer: This completed capstone report is intended for interpretation for business members, not as much for data scientists. As such the level of detail in terms of the methods applied and code specifics will be interpreted at a high level. The capstone report was a project wrapup from the author (Joe Marco), who had limited R & data science knowledge prior to this initiative. See the end of the report for more information about the author*** </span></center
 
 ### <b>1. Executive Overview</b>
 The all too frequent feeling of searching for hours online for the perfect item, only to click the "add to cart" option or order button, to find out the product is on "backorder". Sometimes we do not even have this option when searching in a retail store, if a product is sold out, we simply move on 9 times out of 10. But what exactly is backorder?
@@ -117,7 +117,8 @@ Let's analyze our data a bit further by checking for missing values and decide w
 
 If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null). We will not run this code now, as it will give our report unnecessary length while each line generates a true or false.
 
->any(is.na(capstonedata$sku))
+```{r}#
+any(is.na(capstonedata$sku))
 any(is.na(capstonedata$national_inv))
 any(is.na(capstonedata$lead_time))
 any(is.na(capstonedata$in_transit_qty))
@@ -140,6 +141,7 @@ any(is.na(capstonedata$ppap_risk))
 any(is.na(capstonedata$stop_auto_buy))
 any(is.na(capstonedata$rev_stop))
 any(is.na(capstonedata$went_on_backorder))
+```
 
 #### 4.4 Replace null values
 BAsed off the above we can see the below columns have some NA or Null values:

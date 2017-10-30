@@ -129,7 +129,7 @@ October 14, 2017
 
 
 <center>
-<span style="color:red"><strong><em>Disclaimer: This completed capstone report is intended for interpretation for business members, not s much for data scientists. As such the level of detail in terms of the methods applied and code specifics will be interpreted at a high level. The capstone report was a project wrapup from the author (Joe Marco), who had limited R &amp; data science knowledge prior to this initiative. See the end of the report for more information about the author</em></strong> </span>
+<span style="color:red"><strong><em>Disclaimer: This completed capstone report is intended for interpretation for business members, not as much for data scientists. As such the level of detail in terms of the methods applied and code specifics will be interpreted at a high level. The capstone report was a project wrapup from the author (Joe Marco), who had limited R &amp; data science knowledge prior to this initiative. See the end of the report for more information about the author</em></strong> </span>
 </center>
 <ol style="list-style-type: decimal">
 <li>Executive Overview</b> The all too frequent feeling of searching for hours online for the perfect item, only to click the “add to cart” option or order button, to find out the product is on “backorder”. Sometimes we do not even have this option when searching in a retail store, if a product is sold out, we simply move on 9 times out of 10. But what exactly is backorder?</li>
@@ -236,9 +236,29 @@ capstonedata &lt;- read.csv('productbackorder.csv')
 <h4>4.3 Check for null values in the data set (all fields)</h4>
 <p>Let’s analyze our data a bit further by checking for missing values and decide what to do about them across every column in the data frame:</p>
 <p>If you run the below code you will be able to see for each column if a Null/NA value exists when you run the code. Each line will generate either a TRUE (null exists) or a FALSE (no null). We will not run this code now, as it will give our report unnecessary length while each line generates a true or false.</p>
-<blockquote>
-<p>any(is.na(capstonedata<span class="math inline">\(sku)) any(is.na(capstonedata\)</span>national_inv)) any(is.na(capstonedata<span class="math inline">\(lead_time)) any(is.na(capstonedata\)</span>in_transit_qty)) any(is.na(capstonedata<span class="math inline">\(forecast_3_month)) any(is.na(capstonedata\)</span>forecast_6_month)) any(is.na(capstonedata<span class="math inline">\(forecast_9_month)) any(is.na(capstonedata\)</span>sales_1_month)) any(is.na(capstonedata<span class="math inline">\(sales_3_month)) any(is.na(capstonedata\)</span>sales_6_month)) any(is.na(capstonedata<span class="math inline">\(sales_9_month)) any(is.na(capstonedata\)</span>min_stock)) any(is.na(capstonedata<span class="math inline">\(potential_issue)) any(is.na(capstonedata\)</span>pieces_past_due)) any(is.na(capstonedata<span class="math inline">\(perf_6_month_avg)) any(is.na(capstonedata\)</span>perf_12_month_avg)) any(is.na(capstonedata<span class="math inline">\(local_bo_qty)) any(is.na(capstonedata\)</span>deck_risk)) any(is.na(capstonedata<span class="math inline">\(oe_constraint)) any(is.na(capstonedata\)</span>ppap_risk)) any(is.na(capstonedata<span class="math inline">\(stop_auto_buy)) any(is.na(capstonedata\)</span>rev_stop)) any(is.na(capstonedata$went_on_backorder))</p>
-</blockquote>
+<pre class="{r}#"><code>any(is.na(capstonedata$sku))
+any(is.na(capstonedata$national_inv))
+any(is.na(capstonedata$lead_time))
+any(is.na(capstonedata$in_transit_qty))
+any(is.na(capstonedata$forecast_3_month))
+any(is.na(capstonedata$forecast_6_month))
+any(is.na(capstonedata$forecast_9_month))
+any(is.na(capstonedata$sales_1_month))
+any(is.na(capstonedata$sales_3_month))
+any(is.na(capstonedata$sales_6_month))
+any(is.na(capstonedata$sales_9_month))
+any(is.na(capstonedata$min_stock))
+any(is.na(capstonedata$potential_issue))
+any(is.na(capstonedata$pieces_past_due))
+any(is.na(capstonedata$perf_6_month_avg))
+any(is.na(capstonedata$perf_12_month_avg))
+any(is.na(capstonedata$local_bo_qty))
+any(is.na(capstonedata$deck_risk))
+any(is.na(capstonedata$oe_constraint))
+any(is.na(capstonedata$ppap_risk))
+any(is.na(capstonedata$stop_auto_buy))
+any(is.na(capstonedata$rev_stop))
+any(is.na(capstonedata$went_on_backorder))</code></pre>
 </div>
 <div id="replace-null-values" class="section level4">
 <h4>4.4 Replace null values</h4>
